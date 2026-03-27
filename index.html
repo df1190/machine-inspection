@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Machine Inspection Report</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f7fa;
+  --bg2: #ffffff;
+  --bg3: #eef1f6;
+  --border: #d1d9e6;
+  --text: #1a2236;
+  --text2: #4a5568;
+  --text3: #8a9ab5;
+  --pass: #16a34a;
+  --pass-bg: rgba(22,163,74,0.08);
+  --fail: #dc2626;
+  --fail-bg: rgba(220,38,38,0.08);
+  --warn: #d97706;
+  --warn-bg: rgba(217,119,6,0.08);
+  --accent: #2563eb;
+  --accent2: #4f46e5;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
+
+/* LAYOUT */
+.app-wrapper { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; min-width: 220px; background: var(--bg2); border-right: 1px solid var(--border); position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; }
+.main-content { margin-left: 220px; flex: 1; padding: 0 0 80px 0; }
+
+/* SIDEBAR */
+.sidebar-header { padding: 20px 16px 14px; border-bottom: 1px solid var(--border); }
+.sidebar-header h1 { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; line-height: 1.4; }
+.sidebar-header p { font-size: 11px; color: var(--text3); margin-top: 4px; font-family: var(--mono); }
+.nav-section { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.nav-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); padding: 0 16px 6px; font-family: var(--mono); }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--text2); text-decoration: none; }
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: rgba(37,99,235,0.08); color: var(--accent); border-right: 2px solid var(--accent); }
+.nav-badge { margin-left: auto; font-size: 10px; font-family: var(--mono); padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+.badge-pass { background: var(--pass-bg); color: var(--pass); }
+.badge-fail { background: var(--fail-bg); color: var(--fail); }
+.badge-warn { background: var(--warn-bg); color: var(--warn); }
+.nav-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* TOP BAR */
+.topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.topbar-title { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 1px; }
+.topbar-actions { display: flex; gap: 10px; }
+.btn { padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-family: var(--sans); font-weight: 600; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+.btn-secondary:hover { color: var(--text); border-color: var(--accent); }
+.btn-danger { background: rgba(220,38,38,0.08); color: var(--fail); border: 1px solid rgba(220,38,38,0.2); }
+
+/* SECTIONS */
+.section { padding: 32px; border-bottom: 1px solid var(--border); }
+.section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.section-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.section-title { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+.section-subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+/* FORMS */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); }
+.form-input { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 13px; color: var(--text); font-size: 14px; font-family: var(--sans); transition: border-color 0.15s; width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.form-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.form-input::placeholder { color: var(--text3); }
+select.form-input { cursor: pointer; }
+textarea.form-input { resize: vertical; min-height: 80px; }
+
+/* DASHBOARD CARDS */
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 32px; }
+.dash-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; transition: all 0.2s; cursor: pointer; }
+.dash-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.dash-card-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 10px; }
+.dash-card-score { font-size: 28px; font-weight: 700; font-family: var(--mono); margin-bottom: 6px; }
+.dash-bar { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; display: flex; gap: 2px; }
+.dash-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+.dash-stats { display: flex; gap: 10px; margin-top: 8px; }
+.dash-stat { font-size: 10px; font-family: var(--mono); }
+
+/* TASK TABLE */
+.task-table { width: 100%; border-collapse: collapse; }
+.task-table th { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); background: var(--bg3); }
+.task-row { border-bottom: 1px solid var(--border); background: var(--bg2); }
+.task-row:last-child { border-bottom: none; }
+.task-row:hover { background: #f8faff; }
+.task-cell { padding: 12px 14px; vertical-align: top; }
+.task-num { font-family: var(--mono); font-size: 12px; color: var(--text3); font-weight: 700; white-space: nowrap; }
+.task-name { font-size: 14px; font-weight: 500; line-height: 1.5; color: var(--text); }
+.status-toggle { display: flex; gap: 4px; flex-wrap: wrap; }
+.status-btn { padding: 5px 11px; border-radius: 5px; border: 1px solid transparent; cursor: pointer; font-size: 12px; font-weight: 700; font-family: var(--mono); transition: all 0.15s; background: transparent; }
+.status-btn.pass { border-color: #bbf7d0; color: #6b7280; background: #f0fdf4; }
+.status-btn.pass.active { background: var(--pass-bg); border-color: var(--pass); color: var(--pass); }
+.status-btn.fail { border-color: #fecaca; color: #6b7280; background: #fef2f2; }
+.status-btn.fail.active { background: var(--fail-bg); border-color: var(--fail); color: var(--fail); }
+.status-btn.warn { border-color: #fde68a; color: #6b7280; background: #fffbeb; }
+.status-btn.warn.active { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+.status-btn.na { border-color: #e2e8f0; color: #6b7280; background: #f8fafc; }
+.status-btn.na.active { background: #f1f5f9; border-color: #94a3b8; color: #64748b; }
+.comment-area { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 5px; padding: 8px 11px; color: var(--text); font-size: 13px; font-family: var(--sans); resize: vertical; min-height: 56px; }
+.comment-area:focus { outline: none; border-color: var(--accent); background: var(--bg2); }
+.task-row.status-pass { border-left: 3px solid var(--pass); }
+.task-row.status-fail { border-left: 3px solid var(--fail); }
+.task-row.status-warn { border-left: 3px solid var(--warn); }
+
+/* PHOTO UPLOAD */
+.photo-upload-area { border: 1px dashed var(--border); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--bg3); }
+.photo-upload-area:hover { border-color: var(--accent); background: rgba(37,99,235,0.04); }
+.photo-upload-area input { display: none; }
+.photo-upload-text { font-size: 12px; color: var(--text3); }
+.photo-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.photo-item { position: relative; }
+.photo-thumb { width: 70px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+.photo-remove { position: absolute; top: -5px; right: -5px; background: var(--fail); color: white; border: none; border-radius: 50%; width: 16px; height: 16px; cursor: pointer; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+.photo-caption { font-size: 11px; background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text2); width: 70px; padding: 2px 0; text-align: center; font-family: var(--sans); }
+.photo-caption:focus { outline: none; border-color: var(--accent); }
+
+/* MEASUREMENTS */
+.meas-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.meas-table th { background: var(--bg3); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+.meas-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; background: var(--bg2); }
+.meas-table input { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 6px 9px; color: var(--text); font-size: 13px; font-family: var(--mono); width: 100%; }
+.meas-table input:focus { outline: none; border-color: var(--accent); background: var(--bg2); }
+.meas-label { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); }
+.add-row-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(37,99,235,0.06); border: 1px dashed rgba(37,99,235,0.3); border-radius: 6px; color: var(--accent); font-size: 13px; cursor: pointer; font-family: var(--sans); font-weight: 500; transition: all 0.15s; margin-top: 8px; }
+.add-row-btn:hover { background: rgba(37,99,235,0.12); }
+.del-row-btn { background: transparent; border: none; color: var(--fail); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; }
+.del-row-btn:hover { background: var(--fail-bg); }
+
+/* STATUS PILLS */
+.pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--mono); letter-spacing: 0.5px; }
+.pill-pass { background: var(--pass-bg); color: var(--pass); border: 1px solid rgba(22,163,74,0.2); }
+.pill-fail { background: var(--fail-bg); color: var(--fail); border: 1px solid rgba(220,38,38,0.2); }
+.pill-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid rgba(217,119,6,0.2); }
+
+/* TONNAGE */
+.tonnage-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+.tonnage-result { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+.tonnage-metric { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; flex: 1; min-width: 120px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tonnage-metric-label { font-size: 11px; color: var(--text3); font-family: var(--mono); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+.tonnage-metric-val { font-size: 24px; font-weight: 700; font-family: var(--mono); margin-top: 4px; color: var(--text); }
+
+/* HEATS TABLE */
+.heats-table { width: 100%; border-collapse: collapse; }
+.heats-table th { background: var(--bg3); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); padding: 10px 12px; text-align: center; border-bottom: 2px solid var(--border); }
+.heats-table th:first-child { text-align: left; }
+.heats-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; background: var(--bg2); }
+.heats-table td:first-child { text-align: left; }
+.heats-table input { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; color: var(--text); font-size: 13px; font-family: var(--mono); text-align: center; }
+.heats-table input:focus { outline: none; border-color: var(--accent); background: var(--bg2); }
+.heats-table select { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; color: var(--text); font-size: 13px; font-family: var(--sans); }
+.heats-table select:focus { outline: none; border-color: var(--accent); }
+.heat-name-input { width: 110px; text-align: left !important; }
+.heat-narrow { width: 80px; }
+
+/* NON PROCESS TABLE */
+.npt-table { width: 100%; border-collapse: collapse; }
+.npt-table th { background: var(--bg3); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); padding: 10px 14px; text-align: center; border-bottom: 2px solid var(--border); }
+.npt-table th:first-child { text-align: left; }
+.npt-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; background: var(--bg2); }
+.npt-table td:first-child { text-align: left; }
+.npt-table input { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 6px 9px; color: var(--text); font-size: 13px; font-family: var(--mono); text-align: center; width: 95px; }
+.npt-table input:focus { outline: none; border-color: var(--accent); background: var(--bg2); }
+.npt-diff-pos { color: var(--pass); }
+.npt-diff-neg { color: var(--fail); }
+
+/* THERMAL */
+.thermal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.thermal-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.thermal-img-wrap { height: 150px; background: var(--bg3); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+.thermal-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.thermal-img-placeholder { font-size: 24px; color: var(--text3); }
+.thermal-input { display: none; }
+.thermal-caption { padding: 8px 10px; border-top: 1px solid var(--border); }
+.thermal-caption input { background: transparent; border: none; color: var(--text); font-size: 13px; width: 100%; font-family: var(--sans); }
+.thermal-caption input:focus { outline: none; }
+.thermal-add { border: 1px dashed var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; min-height: 190px; cursor: pointer; color: var(--text3); font-size: 13px; gap: 8px; transition: all 0.15s; background: var(--bg3); }
+.thermal-add:hover { border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,0.04); }
+.thermal-section-label { font-size: 14px; font-weight: 600; color: var(--text2); margin: 16px 0 10px; }
+.thermal-comment { margin-top: 10px; }
+
+/* ALARMS */
+.alarm-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.alarm-row { display: grid; grid-template-columns: 200px 1fr auto; gap: 10px; align-items: center; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 9px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.alarm-row input { background: transparent; border: none; color: var(--text); font-size: 13px; font-family: var(--sans); width: 100%; }
+.alarm-row input:focus { outline: none; }
+.freq-badge { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--warn); background: var(--warn-bg); padding: 3px 10px; border-radius: 4px; white-space: nowrap; border: 1px solid rgba(217,119,6,0.2); }
+
+/* HEADER INFO */
+.info-banner { background: linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(79,70,229,0.06) 100%); border: 1px solid rgba(37,99,235,0.15); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.info-banner h2 { font-size: 20px; font-weight: 700; font-family: var(--mono); color: var(--accent); margin-bottom: 6px; }
+.info-banner p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* MACHINE PHOTO */
+.machine-photo-area { border: 2px dashed var(--border); border-radius: 10px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s; margin-top: 16px; background: var(--bg3); }
+.machine-photo-area:hover { border-color: var(--accent); background: rgba(37,99,235,0.03); }
+.machine-photo-area img { max-width: 100%; max-height: 300px; border-radius: 8px; }
+.machine-photo-area input { display: none; }
+.machine-photo-placeholder { color: var(--text3); }
+.machine-photo-placeholder svg { width: 40px; height: 40px; margin-bottom: 8px; opacity: 0.4; }
+.machine-photo-placeholder p { font-size: 14px; }
+
+/* GENERAL REC */
+.rec-list { list-style: none; }
+.rec-item { display: flex; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.rec-item:last-child { border-bottom: none; }
+.rec-num { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); background: rgba(37,99,235,0.1); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.rec-textarea { flex: 1; background: transparent; border: none; color: var(--text); font-size: 14px; font-family: var(--sans); resize: vertical; min-height: 44px; line-height: 1.6; }
+.rec-textarea:focus { outline: none; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg3); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Summary overview */
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.overview-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.ov-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.ov-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); }
+.ov-bars { display: flex; flex-direction: column; gap: 7px; }
+.ov-bar-row { display: flex; align-items: center; gap: 8px; }
+.ov-bar-label { font-size: 11px; color: var(--text3); width: 32px; font-family: var(--mono); }
+.ov-bar-track { flex: 1; height: 7px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.ov-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.ov-bar-count { font-size: 11px; font-family: var(--mono); color: var(--text3); width: 20px; text-align: right; font-weight: 700; }
+
+/* Comment presets */
+.preset-dropdown { position: relative; display: inline-block; }
+.preset-btn { padding: 5px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; color: var(--text2); font-size: 11px; cursor: pointer; font-family: var(--mono); font-weight: 600; }
+.preset-btn:hover { color: var(--accent); border-color: var(--accent); }
+.preset-menu { position: absolute; top: 100%; left: 0; z-index: 200; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; min-width: 300px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: none; max-height: 220px; overflow-y: auto; }
+.preset-menu.open { display: block; }
+.preset-option { padding: 9px 14px; font-size: 13px; cursor: pointer; color: var(--text2); transition: all 0.1s; border-bottom: 1px solid var(--border); }
+.preset-option:last-child { border-bottom: none; }
+.preset-option:hover { background: var(--bg3); color: var(--text); }
+
+/* SECTIONS */
+.section { padding: 32px; border-bottom: 1px solid var(--border); background: var(--bg); }
+.section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.section-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.section-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
+.section-subtitle { font-size: 13px; color: var(--text3); margin-top: 3px; }
+
+@media print { .sidebar, .topbar { display: none !important; } .main-content { margin-left: 0 !important; } }
+</style>
+</head>
+<body>
+<div class="app-wrapper">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h1>Machine<br>Inspection</h1>
+      <p>Report Builder v1.0</p>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Report Info</div>
+      <a class="nav-item" onclick="navTo('sec-header')">
+        <span class="nav-dot" style="background:#3b82f6"></span> Header Info
+      </a>
+      <a class="nav-item" onclick="navTo('sec-dashboard')">
+        <span class="nav-dot" style="background:#8b5cf6"></span> Dashboard
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Inspection</div>
+      <a class="nav-item" id="nav-safety" onclick="navTo('sec-safety')">
+        <span class="nav-dot" style="background:#ef4444"></span> Safety
+        <span class="nav-badge" id="badge-safety">—</span>
+      </a>
+      <a class="nav-item" id="nav-hydraulic" onclick="navTo('sec-hydraulic')">
+        <span class="nav-dot" style="background:#f59e0b"></span> Hydraulic
+        <span class="nav-badge" id="badge-hydraulic">—</span>
+      </a>
+      <a class="nav-item" id="nav-mechanical" onclick="navTo('sec-mechanical')">
+        <span class="nav-dot" style="background:#22c55e"></span> Mechanical & Elec.
+        <span class="nav-badge" id="badge-mechanical">—</span>
+      </a>
+      <a class="nav-item" id="nav-robot" onclick="navTo('sec-robot')">
+        <span class="nav-dot" style="background:#06b6d4"></span> Robot Unit
+        <span class="nav-badge" id="badge-robot">—</span>
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Measurements</div>
+      <a class="nav-item" onclick="navTo('sec-measurements')">
+        <span class="nav-dot" style="background:#a78bfa"></span> Machine Meas.
+      </a>
+      <a class="nav-item" onclick="navTo('sec-heats')">
+        <span class="nav-dot" style="background:#fb923c"></span> Machine Heats
+      </a>
+      <a class="nav-item" onclick="navTo('sec-npt')">
+        <span class="nav-dot" style="background:#34d399"></span> Non-Process Time
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Reports</div>
+      <a class="nav-item" onclick="navTo('sec-thermal')">
+        <span class="nav-dot" style="background:#f97316"></span> Thermal Imaging
+      </a>
+      <a class="nav-item" onclick="navTo('sec-alarms')">
+        <span class="nav-dot" style="background:#e879f9"></span> Event Log
+      </a>
+      <a class="nav-item" onclick="navTo('sec-consumables')">
+        <span class="nav-dot" style="background:#94a3b8"></span> Consumables
+      </a>
+      <a class="nav-item" onclick="navTo('sec-recs')">
+        <span class="nav-dot" style="background:#38bdf8"></span> Recommendations
+      </a>
+    </div>
+    <div class="nav-section">
+      <a class="nav-item" onclick="exportPDF()" style="color:var(--accent)">
+        <span>⬇</span> Export PDF
+      </a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">MACHINE INSPECTION REPORT</span>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="clearAll()">🗑 Clear All</button>
+        <button class="btn btn-primary" onclick="exportPDF()">⬇ Export PDF</button>
+      </div>
+    </div>
+
+    <!-- HEADER INFO -->
+    <div class="section" id="sec-header">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(59,130,246,0.12)">🏭</div>
+        <div>
+          <div class="section-title">Report Information</div>
+          <div class="section-subtitle">Plant details, machine identification and inspector info</div>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:16px">
+        <div class="form-group">
+          <label class="form-label">Plant Name</label>
+          <input class="form-input" id="h-plant" placeholder="e.g. ALPLA Cayirova" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Region</label>
+          <input class="form-input" id="h-region" placeholder="e.g. AMET / IM-PET" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input class="form-input" id="h-location" placeholder="e.g. Cayirova, Turkey" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Person</label>
+          <input class="form-input" id="h-contact" placeholder="Name and email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Inspection Date</label>
+          <input class="form-input" id="h-date" type="text" placeholder="e.g. Week 36 – Week 37, 2025" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Inspector Name</label>
+          <input class="form-input" id="h-inspector" placeholder="Full name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Inspector Role / Company</label>
+          <input class="form-input" id="h-role" placeholder="e.g. Maintenance Support, Alpla HQ" />
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:12px;margin-top:8px;">Machine Information</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Machine Model</label>
+          <input class="form-input" id="h-model" placeholder="e.g. HyPET400HPP4.0 P120/120 EE120" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Machine Serial #</label>
+          <input class="form-input" id="h-serial" placeholder="e.g. SN 7305573" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Robot Serial #</label>
+          <input class="form-input" id="h-robot-serial" placeholder="e.g. SN 7377514" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mold P/N</label>
+          <input class="form-input" id="h-mold" placeholder="e.g. PN332202" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hot Runner P/N</label>
+          <input class="form-input" id="h-hotrunner" placeholder="e.g. PN8312898" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hours Meter Reading</label>
+          <input class="form-input" id="h-hours" placeholder="e.g. 66045.92" />
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="form-label" style="margin-bottom:8px">Machine Photo</div>
+        <div class="machine-photo-area" id="machine-photo-area" onclick="document.getElementById('machine-photo-input').click()">
+          <input type="file" id="machine-photo-input" accept="image/*" onchange="setMachinePhoto(event)">
+          <div class="machine-photo-placeholder" id="machine-photo-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M8.5 5L9.5 3h5l1 2"/></svg>
+            <p>Click to upload machine photo</p>
+            <p style="font-size:11px;margin-top:4px">JPG, PNG supported</p>
+          </div>
+          <img id="machine-photo-img" style="display:none;max-width:100%;max-height:300px;border-radius:8px;" />
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="section" id="sec-dashboard">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(139,92,246,0.12)">📊</div>
+        <div>
+          <div class="section-title">Inspection Dashboard</div>
+          <div class="section-subtitle">Live summary of all inspection sections</div>
+        </div>
+      </div>
+      <div class="overview-grid" id="dashboard-grid"></div>
+    </div>
+
+    <!-- SAFETY -->
+    <div class="section" id="sec-safety">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(239,68,68,0.12)">⚠️</div>
+        <div>
+          <div class="section-title">Safety</div>
+          <div class="section-subtitle">Safety gates, guards, ground connections, emergency stops</div>
+        </div>
+      </div>
+      <div id="table-safety"></div>
+    </div>
+
+    <!-- HYDRAULIC -->
+    <div class="section" id="sec-hydraulic">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(245,158,11,0.12)">🔧</div>
+        <div>
+          <div class="section-title">Hydraulic</div>
+          <div class="section-subtitle">Pumps, valves, hoses, fluid levels, leaks</div>
+        </div>
+      </div>
+      <div id="table-hydraulic"></div>
+    </div>
+
+    <!-- MECHANICAL & ELECTRICAL -->
+    <div class="section" id="sec-mechanical">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(34,197,94,0.12)">⚡</div>
+        <div>
+          <div class="section-title">Mechanical &amp; Electrical</div>
+          <div class="section-subtitle">Clamp unit, injection unit, cables, drives</div>
+        </div>
+      </div>
+      <div id="table-mechanical"></div>
+    </div>
+
+    <!-- ROBOT UNIT -->
+    <div class="section" id="sec-robot">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(6,182,212,0.12)">🤖</div>
+        <div>
+          <div class="section-title">Robot Unit</div>
+          <div class="section-subtitle">Cooling, hoses, belts, bearings, electrical cabinet</div>
+        </div>
+      </div>
+      <div id="table-robot"></div>
+    </div>
+
+    <!-- MACHINE MEASUREMENTS -->
+    <div class="section" id="sec-measurements">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(167,139,250,0.12)">📐</div>
+        <div>
+          <div class="section-title">Machine Measurements</div>
+          <div class="section-subtitle">Accumulator pressures, pump measurements, tonnage test</div>
+        </div>
+      </div>
+
+      <!-- ACCUMULATORS -->
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;font-family:var(--mono)">Accumulator Measurements</div>
+      <table class="meas-table" id="acc-table">
+        <thead><tr>
+          <th>Designation</th><th>Schematic Value (Bar)</th><th>Measured Value (Bar)</th><th>Tolerance (Bar)</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="acc-tbody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addAccRow()">+ Add Accumulator</button>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Accumulator Comments</label>
+        <textarea class="form-input" id="acc-comments" placeholder="Add comments about accumulator condition..."></textarea>
+      </div>
+
+      <!-- PUMPS -->
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;margin-top:28px;font-family:var(--mono)">Pump Measurements</div>
+      <table class="meas-table" id="pump-table">
+        <thead><tr>
+          <th>Pump</th><th>Hydraulic Schematic (Bar)</th><th>Measured Value (Bar)</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="pump-tbody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addPumpRow()">+ Add Pump</button>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Pump Comments</label>
+        <textarea class="form-input" id="pump-comments" placeholder="Add comments about pump condition..."></textarea>
+      </div>
+
+      <!-- TONNAGE -->
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;margin-top:28px;font-family:var(--mono)">Tonnage Test</div>
+      <div class="tonnage-box">
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label">Tonnage @ 0 min</label>
+            <input class="form-input" id="ton-0" type="number" placeholder="e.g. 400" oninput="calcTonnage()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tonnage @ 10 min</label>
+            <input class="form-input" id="ton-10" type="number" placeholder="e.g. 393" oninput="calcTonnage()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Allowed Loss (10%)</label>
+            <input class="form-input" id="ton-max" readonly style="color:var(--warn);background:var(--bg3)" placeholder="Auto-calculated" />
+          </div>
+        </div>
+        <div class="tonnage-result" id="tonnage-result" style="display:none">
+          <div class="tonnage-metric">
+            <div class="tonnage-metric-label">Actual Loss</div>
+            <div class="tonnage-metric-val" id="ton-loss">—</div>
+          </div>
+          <div class="tonnage-metric">
+            <div class="tonnage-metric-label">Result</div>
+            <div class="tonnage-metric-val" id="ton-result">—</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:16px">
+          <label class="form-label">Comments</label>
+          <textarea class="form-input" id="ton-comments" placeholder="Tonnage test observations..."></textarea>
+        </div>
+      </div>
+
+      <!-- ELECTRICAL MEASUREMENTS -->
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;margin-top:28px;font-family:var(--mono)">Electrical Measurements</div>
+      <table class="meas-table">
+        <thead><tr><th>Measurement</th><th>Comment</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><span class="meas-label">26Vdc Control Voltage</span></td><td><input class="form-input" id="elec-26v" placeholder="e.g. 25.9 Vdc OK" /></td><td><select class="form-input" style="max-width:100px" id="elec-26v-s"><option value="">—</option><option value="pass">PASS</option><option value="fail">FAIL</option></select></td></tr>
+          <tr><td><span class="meas-label">110/115 Vac</span></td><td><input class="form-input" id="elec-115v" placeholder="Value" /></td><td><select class="form-input" style="max-width:100px" id="elec-115v-s"><option value="">—</option><option value="pass">PASS</option><option value="fail">FAIL</option></select></td></tr>
+          <tr><td><span class="meas-label">400/460 Vac Power Supply</span></td><td><input class="form-input" id="elec-400v" placeholder="e.g. 398Vac OK" /></td><td><select class="form-input" style="max-width:100px" id="elec-400v-s"><option value="">—</option><option value="pass">PASS</option><option value="fail">FAIL</option></select></td></tr>
+          <tr><td><span class="meas-label">400Vac Mold Power Supply</span></td><td><input class="form-input" id="elec-mold" placeholder="e.g. 398Vac OK" /></td><td><select class="form-input" style="max-width:100px" id="elec-mold-s"><option value="">—</option><option value="pass">PASS</option><option value="fail">FAIL</option></select></td></tr>
+        </tbody>
+      </table>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Electrical Measurement Comments</label>
+        <textarea class="form-input" id="elec-comments" placeholder="Additional observations..."></textarea>
+      </div>
+    </div>
+
+    <!-- MACHINE HEATS -->
+    <div class="section" id="sec-heats">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(251,146,60,0.12)">🌡️</div>
+        <div>
+          <div class="section-title">Machine Heats Current Measurement</div>
+          <div class="section-subtitle">Heater supply, wattage, calculated vs measured amps — auto Pass/Fail at ±10%</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="heats-table" id="heats-table">
+        <thead><tr>
+          <th style="text-align:left">Heater</th>
+          <th>Supply (V)</th>
+          <th>E-Schem (W)</th>
+          <th>Calc. Amps</th>
+          <th>Meas. Amps</th>
+          <th>Condition</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="heats-tbody"></tbody>
+      </table>
+      </div>
+      <button class="add-row-btn" onclick="addHeatRow()">+ Add Heater</button>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Heats Comments</label>
+        <textarea class="form-input" id="heats-comments" placeholder="e.g. All machine heaters passed. Recommend spare parts for distributor and nozzle adapter..."></textarea>
+      </div>
+    </div>
+
+    <!-- NON PROCESS TIME -->
+    <div class="section" id="sec-npt">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(52,211,153,0.12)">⏱️</div>
+        <div>
+          <div class="section-title">Non-Process Time Breakdown</div>
+          <div class="section-subtitle">Reference vs measured times — difference auto-calculated</div>
+        </div>
+      </div>
+
+      <!-- E-Motor Current -->
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;font-family:var(--mono)">E-Motor Current</div>
+      <div class="form-grid-3" style="margin-bottom:20px">
+        <div class="form-group">
+          <label class="form-label">L1 Cycle (Amps)</label>
+          <input class="form-input" id="motor-l1" type="number" placeholder="e.g. 113.5" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">L2 Cycle (Amps)</label>
+          <input class="form-input" id="motor-l2" type="number" placeholder="e.g. 116.9" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">L3 Cycle (Amps)</label>
+          <input class="form-input" id="motor-l3" type="number" placeholder="e.g. 116.8" />
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">E-Motor Comments</label>
+        <textarea class="form-input" id="motor-comments" placeholder="e.g. Power consumption during operation is as expected..."></textarea>
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;font-family:var(--mono)">Non-Process Times</div>
+      <table class="npt-table" id="npt-table">
+        <thead><tr>
+          <th>Action</th>
+          <th>Reference (s)</th>
+          <th>Measured (s)</th>
+          <th>Difference (s)</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="npt-tbody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addNPTRow()">+ Add Row</button>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Non-Process Time Comments</label>
+        <textarea class="form-input" id="npt-comments" placeholder="e.g. Machine non-process times are good. Running within standard values..."></textarea>
+      </div>
+    </div>
+
+    <!-- THERMAL IMAGING -->
+    <div class="section" id="sec-thermal">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(249,115,22,0.12)">🔥</div>
+        <div>
+          <div class="section-title">Thermal Imaging Report</div>
+          <div class="section-subtitle">Upload thermal images by section</div>
+        </div>
+      </div>
+      <div id="thermal-sections"></div>
+      <button class="add-row-btn" onclick="addThermalSection()">+ Add Thermal Section</button>
+    </div>
+
+    <!-- EVENT LOG -->
+    <div class="section" id="sec-alarms">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(232,121,249,0.12)">🔔</div>
+        <div>
+          <div class="section-title">Event Log &amp; Most Frequent Alarms</div>
+          <div class="section-subtitle">Active alarms and top recurring events</div>
+        </div>
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;font-family:var(--mono)">Active Alarms</div>
+      <div class="alarm-list" id="alarm-list"></div>
+      <button class="add-row-btn" onclick="addAlarm()">+ Add Alarm</button>
+
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;margin-top:28px;font-family:var(--mono)">Top Frequent Alarms</div>
+      <div class="alarm-list" id="top-alarm-list"></div>
+      <button class="add-row-btn" onclick="addTopAlarm()">+ Add Frequent Alarm</button>
+
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Event Log Comments</label>
+        <textarea class="form-input" id="alarm-comments" placeholder="e.g. HMI displaying warnings related to Mold Tags..."></textarea>
+      </div>
+    </div>
+
+    <!-- CONSUMABLES -->
+    <div class="section" id="sec-consumables">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(148,163,184,0.12)">🛢️</div>
+        <div>
+          <div class="section-title">List of Consumable Parts</div>
+          <div class="section-subtitle">Recommended oils, lubricants and replacement intervals</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes on Consumables</label>
+        <textarea class="form-input" style="min-height:120px" id="consumables-notes" placeholder="List recommended oils, greases, seals and replacement schedules...&#10;&#10;Example:&#10;- Hydraulic System: Total Azolla ZS46 / Chevron AW46&#10;- Extruder Motor/Gearbox: Castrol Alpha EP 220&#10;- Vacuum Pump: Busch VE 101&#10;- Electric Clamp Lock Piston: Mobilgear 600 XP 220"></textarea>
+      </div>
+    </div>
+
+    <!-- RECOMMENDATIONS -->
+    <div class="section" id="sec-recs">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(56,189,248,0.12)">💡</div>
+        <div>
+          <div class="section-title">General Recommendations</div>
+          <div class="section-subtitle">Machine and robot actionable recommendations</div>
+        </div>
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;font-family:var(--mono)">Machine</div>
+      <ul class="rec-list" id="rec-machine-list"></ul>
+      <button class="add-row-btn" onclick="addRec('machine')">+ Add Recommendation</button>
+
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;margin-top:24px;font-family:var(--mono)">Robot</div>
+      <ul class="rec-list" id="rec-robot-list"></ul>
+      <button class="add-row-btn" onclick="addRec('robot')">+ Add Recommendation</button>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+<script>
+// ── DATA DEFINITIONS ──────────────────────────────────────────────────────
+
+const SECTIONS = {
+  safety: {
+    label: 'Safety',
+    color: '#ef4444',
+    tasks: [
+      { id:'s1', name:'Safety gates installed and functioning normally', presets:['Gates in good condition and operating normally','Gate handle needs adjustment - difficult to open/close','Gate damaged or not functioning properly'] },
+      { id:'s2', name:'Front gate condition', presets:['Gate in good condition','Handle needs adjustment - tricky to open and close','Gate damaged or missing'] },
+      { id:'s3', name:'Purge Guard Condition', presets:['Purge guard in good condition','Purge guard damaged or missing','Requires cleaning'] },
+      { id:'s4', name:'Vacuum and conveyor doors', presets:['Doors in good condition and functioning','Door damaged or misaligned','Door seal worn - replacement recommended'] },
+      { id:'s5', name:'Emergency stop push buttons (Robot & Machine)', presets:['Both E-stops operating correctly','E-stop not functioning - immediate repair required','E-stop button damaged or missing'] },
+      { id:'s6', name:'CEN Valve operation and condition', presets:['Operating and in good condition','Requires cleaning','Valve faulty - repair recommended'] },
+      { id:'s7', name:'Safety drop bar condition', presets:['Drop bar in good condition','Drop bar option not installed on this machine','Drop bar damaged - replacement required'] },
+      { id:'s8', name:'Barrel cover grounding straps connected', presets:['All ground straps connected','One or more ground straps disconnected - must be fixed','Ground strap missing - immediate action required'] },
+      { id:'s9', name:'Ground connections between injection, clamp and robot', presets:['All ground connections connected','Clamp-robot ground not connected - must be fixed','Injection-clamp ground not connected - must be fixed'] },
+      { id:'s10', name:'Safety glass / polycarbonate covers condition', presets:['All covers in good condition','Minor scratches - acceptable','Cover cracked or broken - replacement required'] },
+      { id:'s11', name:'Contactor terminal covers (Q2 finger guards)', presets:['All covers installed and intact','Q2 missing high voltage covers - must be replaced','Covers damaged - replacement required'] },
+      { id:'s12', name:'Low air pressure alarm stops cycle', presets:['Alarm functioning correctly','Alarm not triggering - investigate immediately','Alarm triggering but not stopping cycle'] },
+      { id:'s13', name:'Hose restraints', presets:['All restraints properly attached','Some restraints missing - install immediately','Restraints worn - replacement recommended'] },
+      { id:'s14', name:'Safety signs installed, clean and readable', presets:['All signs in place and readable','One or more signs missing - replace immediately','Signs faded or illegible - replacement recommended'] },
+      { id:'s15', name:'Air supply valves and main breakers have LOTO features', presets:['All LOTO features installed','LOTO feature missing - install before next maintenance','LOTO feature damaged - replace'] },
+      { id:'s16', name:'Limit and proximity switches in good condition', presets:['All limit switches in good condition and operating','Switches dirty - cleaning recommended','Switch faulty - replacement required'] },
+    ]
+  },
+  hydraulic: {
+    label: 'Hydraulic',
+    color: '#f59e0b',
+    tasks: [
+      { id:'h1', name:'Check overall machine area housekeeping', presets:['Area clean - no oil spills','Minor oil traces - housekeeping required','Significant oil spill - immediate cleaning required'] },
+      { id:'h2', name:'Inspect for abnormal movements or noises during operation', presets:['No abnormal noise or behavior observed','Minor abnormal sound - monitor closely','Significant abnormal noise - investigate immediately'] },
+      { id:'h3', name:'Verify hydraulic oil temperature within spec (50°C H-Line)', presets:['Temperature within specification','Temperature slightly elevated - monitor','Temperature out of spec - investigate cooling'] },
+      { id:'h4', name:'Confirm hydraulic oil level within correct range', presets:['Level is correct','Level low - top up required','Level critically low - immediate top up required'] },
+      { id:'h5', name:'Confirm extruder oil level is adequate', presets:['Level is adequate','Level low - top up recommended','Level critically low - immediate action required'] },
+      { id:'h6', name:'Inspect all hydraulic hoses for damage or age', presets:['All hoses in good condition','Some hoses are sweating/blistered - proactive replacement recommended','Hoses damaged or over 5 years old - immediate replacement required'] },
+      { id:'h7', name:'Check hose restraints are present and properly installed', presets:['All restraints properly attached','Some restraints missing or loose','Restraints not present - install immediately'] },
+      { id:'h8', name:'Hydraulic hoses - Clamp unit', presets:['Hoses in good condition','Some hoses sweating or blistered - replacement recommended','Multiple hoses leaking/damaged - immediate replacement required'] },
+      { id:'h9', name:'Clamp cylinder manifold - wear, leaks or contamination', presets:['Manifold clean - no leaks found','Manifold oil-coated - cleaning recommended, monitor for leaks','Active leak found - reseal required'] },
+      { id:'h10', name:'Stroke cylinder manifold - wear, leaks or contamination', presets:['Manifold clean - no leaks found','Manifold oil-coated - cleaning and monitoring recommended','Leak visible - stroke piston reseal recommended'] },
+      { id:'h11', name:'Booster cylinders manifold - wear, leaks or contamination', presets:['Manifold clean - no leaks','Manifold oil-coated - cleaning recommended','Preventive reseal recommended due to machine age'] },
+      { id:'h12', name:'Ejector cylinder manifold - wear, leaks or contamination', presets:['Manifold clean - no leaks','Manifold oil-coated - cleaning recommended','Preventive reseal recommended due to machine age'] },
+      { id:'h13', name:'Check shutter cylinder condition', presets:['Shutter in good condition','Minor wear observed - monitor','Damage found - inspection required'] },
+      { id:'h14', name:'Hydraulic hoses - Injection unit', presets:['Hoses in good condition','Some hoses sweating from fittings - replacement recommended','Multiple hoses leaking - immediate replacement required'] },
+      { id:'h15', name:'Inspect hydraulic powerpack and pumps for leaks', presets:['Powerpack clean - no leaks','Minor oil traces - housekeeping needed','Active leak found - seal replacement required'] },
+      { id:'h16', name:'Inspect injection cylinder/manifold for leaks or seal wear', presets:['No leaks found - cylinder operating correctly','Manifold oil-coated - cleaning recommended','Leak found - reseal required'] },
+      { id:'h17', name:'Inspect transfer cylinders / manifold', presets:['Cylinders in good condition','Cleaning recommended - no record of seal replacement','Proactive seal replacement recommended'] },
+      { id:'h18', name:'Check extruder motor for normal condition and shaft leaks', presets:['Electrical extruder in normal condition - no abnormal sounds','Minor oil traces at shaft seal','Significant shaft leak - seal replacement required'] },
+      { id:'h19', name:'Confirm extruder gearbox functioning properly', presets:['Gearbox operating correctly','Minor noise - monitor','Significant noise or vibration - inspection required'] },
+      { id:'h20', name:'Inspect carriage cylinders for leaks (NOPS)', presets:['No leaks found','NOPS carriage piston leaking internally and externally - monitor and plan replacement','Severe leak - immediate replacement required'] },
+      { id:'h21', name:'Check shutoff nozzle functionality', presets:['Functioning correctly','Proximity switch cleaning needed - functionality OK','Faulty - repair required'] },
+      { id:'h22', name:'Inspect powerpack and oil recovery unit', presets:['Powerpack clean - oil recovery unit working correctly','Minor oil traces - hoses to be replaced proactively','Active leaks - investigation required'] },
+      { id:'h23', name:'Examine pressure/offline filter housing for leaks', presets:['No leaks found','Minor seepage - monitor','Active leak - seal replacement required'] },
+    ]
+  },
+  mechanical: {
+    label: 'Mech & Elec',
+    color: '#22c55e',
+    tasks: [
+      { id:'m1', name:'Electrical bypass check in electrical cabinet', presets:['No bypass found - cabinet in order','Non-standard connection found - must be corrected','Bypass found - immediate action required'] },
+      { id:'m2', name:'HMI condition', presets:['HMI in good condition','Screen scratched or dirty - cleaning recommended','HMI damaged - replacement required'] },
+      { id:'m3', name:'IPC Battery check', presets:['Battery OK','Battery low - replacement recommended','Battery failed - replace immediately'] },
+      { id:'m4', name:'General condition of electrical cabinets', presets:['Cabinets clean and well maintained','Minor dust - cleaning recommended','Significant contamination - deep cleaning required'] },
+      { id:'m5', name:'Carriage cylinder linkage condition', presets:['Linkage in good condition','Minor wear - monitor','Significant wear - replacement required'] },
+      { id:'m6', name:'Electric clamp lock linkage and reservoir oil level', presets:['Level full - linkage in good condition','Level low - top up required','Linkage damaged - repair required'] },
+      { id:'m7', name:'Clamp, stroke and ejector Temposonics and magnets', presets:['All in good condition - minor cleaning needed','Cleaning required - function OK','Fault detected - replacement required'] },
+      { id:'m8', name:'Levelling mount lock-nuts', presets:['Lock-nuts locked and secure','Lock-nuts loose - tighten immediately','Missing lock-nuts - replace immediately'] },
+      { id:'m9', name:'Column teeth inspection', presets:['Teeth in good condition - no damage or metal dust','Minor wear - monitor','Significant wear or metal dust - inspection required'] },
+      { id:'m10', name:'Clamp casting wear pads inspection', presets:['Wear pads in good condition and properly lubricated','Wear pads require lubrication','Wear pads worn - replacement required'] },
+      { id:'m11', name:'Auto lube / central lube system', presets:['Working properly - cartridge full','Cartridge low - refill required','System fault - inspection required'] },
+      { id:'m12', name:'Oil drain bowls installed and working', presets:['Installed and working - monitoring required','Drain bowl full - empty and clean','Oil drain bowl missing - install immediately'] },
+      { id:'m13', name:'Tank and transfer cylinder breathers', presets:['Breathers in good condition','Tank breather saturated - replacement required','Breather missing - replace immediately'] },
+      { id:'m14', name:'Water saver valve inspection and operation', presets:['Functional - stud protrusion within tolerance','Stud protrusion out of tolerance - adjustment needed','Water saver valve faulty - replacement required'] },
+      { id:'m15', name:'Shutoff linkage inspection', presets:['Working properly - cleaning needed','Misalignment detected - adjustment required','Fault detected - repair required'] },
+      { id:'m16', name:'Check if drool nipple is blocked', presets:['Drool nipple clear - not blocked','Partial blockage - cleaning recommended','Fully blocked - immediate cleaning required'] },
+      { id:'m17', name:'Pump coupling insert condition', presets:['Insert in good condition - 5mm gap on both sides','Insert worn - replacement recommended','Insert missing or damaged - immediate replacement required'] },
+      { id:'m18', name:'Electrical Cabinet - IPC & I/O cards condition', presets:['All cards in good condition','Dust on cards - cleaning recommended','Card fault detected - replacement required'] },
+      { id:'m19', name:'Profibus / EtherCAT connectors and cables', presets:['Cables and connectors in good condition','Dust on cables - cleaning recommended','Cable or connector damage found - replacement required'] },
+      { id:'m20', name:'Stroke column guide bushing conditions', presets:['Bushings within spec (>15.10mm for HyPET 225+)','Bushings worn - measurement out of spec - replacement required','Bushings missing - immediate replacement required'] },
+      { id:'m21', name:'Mold stroke rod retainer', presets:['Operating normally - no strange sounds or movement','Minor abnormality - monitor','Fault detected - inspection required'] },
+      { id:'m22', name:'Oil recovery system status', presets:['System working properly','Bottom seal leaking - replacement recommended','System not functioning - repair required'] },
+      { id:'m23', name:'Drive housing and gearbox oil level', presets:['Oil level correct','Level low - top up required','Level critically low - top up and inspect for leaks'] },
+      { id:'m24', name:'Injection and Transfer Temposonics condition', presets:['In good condition - cleaning needed','Fault detected - replacement required','Temposonic missing - replacement required'] },
+      { id:'m25', name:'Cables and cable track inspection - injection unit', presets:['Cables in good condition','TC cables not in place - housekeeping required','Cable damage found - replacement required'] },
+      { id:'m26', name:'Electrical cabinet cooling unit and fans', presets:['Fans clean and operating correctly','Fans dusty - cleaning recommended','Fan failure - replacement required'] },
+      { id:'m27', name:'Main breakers overloads are correct', presets:['Overloads set correctly per electrical schematic','Overload setting incorrect - adjustment required','Overload tripped - investigation required'] },
+      { id:'m28', name:'Oil tank breather cartridge', presets:['Breather in good condition','Breather saturated - replacement recommended','Breather missing - replace immediately'] },
+      { id:'m29', name:'Extruder servo motor and gearbox cooling conditions', presets:['Cooling conditions good - no alarms on HMI','Minor cooling inefficiency - monitor','Cooling fault - investigation required'] },
+      { id:'m30', name:'Electric motor bearings for grease', presets:['No alarms or abnormal signs - lubricate per schedule','Lubrication overdue - apply correct grease immediately','Bearing noise detected - inspection required'] },
+      { id:'m31', name:'Leveling mounts condition', presets:['Mounts clean and secure','Mounts surrounded by oil/dirt - cleaning required','Mounts damaged - replacement required for relocation'] },
+      { id:'m32', name:'Bolts holding column to MVP are secure', presets:['Bolts tight with witness mark','Bolts loose - tighten to spec per HS252','Bolts missing - replace immediately'] },
+      { id:'m33', name:'MVP Rail condition', presets:['Rails in good condition - lubricate regularly','Bolt plugs missing and high spots present - polish and replace plugs','Rails damaged - replacement required'] },
+      { id:'m34', name:'Air leaks', presets:['No air leaks found','Minor air leak - repair recommended','Significant air leak - immediate repair required'] },
+      { id:'m35', name:'Nozzle condition', presets:['Nozzle in good condition','Nozzle worn - monitor','Nozzle damaged - replacement required'] },
+      { id:'m36', name:'Water and air hoses condition', presets:['Hoses in good condition','Hoses cracked or in bad condition - replacement required','Hose failure - immediate replacement required'] },
+    ]
+  },
+  robot: {
+    label: 'Robot Unit',
+    color: '#06b6d4',
+    tasks: [
+      { id:'r1', name:'General robot unit condition and housekeeping', presets:['Unit clean and in good condition','General housekeeping needed','Significant contamination - deep cleaning required'] },
+      { id:'r2', name:'Levelling mount lock-nuts', presets:['Pads adjusted and properly installed','Pads need adjustment - leveling required','Pads damaged - replacement required for relocation'] },
+      { id:'r3', name:'Robot water cooling and vacuum hose inspection', presets:['All hoses in good condition','Some hoses in bad shape - replacement recommended','Hoses severely damaged - immediate replacement required'] },
+      { id:'r4', name:'Coolpik gearbox and fan inspection', presets:['Clean and in good condition','Dust found - cleaning recommended','Significant contamination - deep cleaning required'] },
+      { id:'r5', name:'Cable track and cable condition', presets:['Cables in good condition - cleaning needed','Minor damage found - monitor','Significant damage - replacement required'] },
+      { id:'r6', name:'EOAT and cooling tubes inspection', presets:['EOAT in good condition','Wear observed - monitor','Damage found - replacement required'] },
+      { id:'r7', name:'Servo cable condition and routing', presets:['Cables in good condition and properly routed','Minor routing issue - correct','Cable damage found - replacement required'] },
+      { id:'r8', name:'Z-axis belt and linear bearings', presets:['Belt tension correct (19Hz) - rails in good condition','Belt tension low (17-18Hz) - adjustment required','Belt worn or damaged - replacement required'] },
+      { id:'r9', name:'CoolPik photo eyes', presets:['All photoeyes working properly','One or more photoeyes faulty - replacement required','All photoeyes faulty - immediate investigation required'] },
+      { id:'r10', name:'Vacuum pump condition and oil level', presets:['Vacuum pump in good condition - oil level OK','Oil dirty - replacement recommended - level above midmark','Oil level low - top up required'] },
+      { id:'r11', name:'Y-axis hydraulic cylinder (if applicable)', presets:['Option not installed on this machine','Cylinder in good condition','Cylinder leaking - seal replacement required'] },
+      { id:'r12', name:'Air pressure reading', presets:['Gauges working properly - pressure within spec','Pressure low - investigate supply','Gauge faulty - replacement required'] },
+      { id:'r13', name:'Robot electrical cabinet', presets:['Clean and in good condition - cooling system working','Dust found - cleaning recommended','Cooling system fault - investigation required'] },
+    ]
+  }
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+const state = { statuses: {}, comments: {}, photos: {} };
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  Object.keys(SECTIONS).forEach(secKey => buildTable(secKey));
+  initAccumulators();
+  initPumps();
+  initHeats();
+  initNPT();
+  initThermal();
+  initAlarms();
+  initRecs();
+  updateDashboard();
+  setInterval(updateDashboard, 2000);
+});
+
+function navTo(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Account for the sticky topbar height
+  const topbarH = document.querySelector('.topbar') ? document.querySelector('.topbar').offsetHeight : 0;
+  const rect = el.getBoundingClientRect();
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const targetY = rect.top + scrollTop - topbarH - 8;
+  window.scrollTo({ top: targetY, behavior: 'smooth' });
+  // Highlight active nav item
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navId = 'nav-' + id.replace('sec-','');
+  const navEl = document.getElementById(navId);
+  if (navEl) navEl.classList.add('active');
+}
+
+// ── TABLE BUILDER ──────────────────────────────────────────────────────────
+function buildTable(secKey) {
+  const sec = SECTIONS[secKey];
+  const container = document.getElementById('table-' + secKey);
+  const wrapper = document.createElement('div');
+  wrapper.style.overflowX = 'auto';
+
+  let html = `<table class="task-table"><thead><tr>
+    <th style="width:40px">#</th>
+    <th>Task / Item</th>
+    <th style="width:160px">Status</th>
+    <th>Comment</th>
+    <th style="width:110px">Photos</th>
+  </tr></thead><tbody>`;
+
+  sec.tasks.forEach((task, i) => {
+    html += `<tr class="task-row" id="row-${task.id}" data-sec="${secKey}" data-id="${task.id}">
+      <td class="task-cell"><span class="task-num">${i+1}</span></td>
+      <td class="task-cell"><span class="task-name">${task.name}</span></td>
+      <td class="task-cell">
+        <div class="status-toggle">
+          <button class="status-btn pass" onclick="setStatus('${task.id}','pass',this)" data-val="pass">✓ Pass</button>
+          <button class="status-btn fail" onclick="setStatus('${task.id}','fail',this)" data-val="fail">✗ Fail</button>
+          <button class="status-btn warn" onclick="setStatus('${task.id}','warn',this)" data-val="warn">! Warn</button>
+          <button class="status-btn na" onclick="setStatus('${task.id}','na',this)" data-val="na">N/A</button>
+        </div>
+      </td>
+      <td class="task-cell">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <div class="preset-dropdown">
+              <button class="preset-btn" onclick="togglePreset('${task.id}')">▾ Presets</button>
+              <div class="preset-menu" id="preset-${task.id}">
+                ${task.presets.map(p => `<div class="preset-option" onclick="applyPreset('${task.id}',\`${p.replace(/`/g,"'")}\`)">${p}</div>`).join('')}
+              </div>
+            </div>
+          </div>
+          <textarea class="comment-area" id="comment-${task.id}" placeholder="Add comment..." oninput="saveComment('${task.id}',this.value)"></textarea>
+        </div>
+      </td>
+      <td class="task-cell">
+        <div class="photo-upload-area" onclick="document.getElementById('photo-input-${task.id}').click()">
+          <input type="file" id="photo-input-${task.id}" accept="image/*" multiple onchange="addPhotos('${task.id}',event)">
+          <div class="photo-upload-text">📷 Upload</div>
+        </div>
+        <div class="photo-grid" id="photo-grid-${task.id}"></div>
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  wrapper.innerHTML = html;
+  container.appendChild(wrapper);
+}
+
+function setStatus(id, val, btn) {
+  state.statuses[id] = val;
+  const row = document.getElementById('row-' + id);
+  row.className = 'task-row status-' + val;
+  const buttons = row.querySelectorAll('.status-btn');
+  buttons.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function saveComment(id, val) { state.comments[id] = val; }
+
+function togglePreset(id) {
+  const menu = document.getElementById('preset-' + id);
+  const isOpen = menu.classList.contains('open');
+  document.querySelectorAll('.preset-menu.open').forEach(m => m.classList.remove('open'));
+  if (!isOpen) menu.classList.add('open');
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.preset-dropdown')) {
+    document.querySelectorAll('.preset-menu.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+function applyPreset(id, text) {
+  const ta = document.getElementById('comment-' + id);
+  ta.value = text;
+  state.comments[id] = text;
+  document.getElementById('preset-' + id).classList.remove('open');
+}
+
+function addPhotos(id, event) {
+  if (!state.photos[id]) state.photos[id] = [];
+  const grid = document.getElementById('photo-grid-' + id);
+  Array.from(event.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const idx = state.photos[id].length;
+      state.photos[id].push({ src: e.target.result, caption: '' });
+      const item = document.createElement('div');
+      item.className = 'photo-item';
+      item.innerHTML = `<img src="${e.target.result}" class="photo-thumb" /><button class="photo-remove" onclick="removePhoto('${id}',${idx},this.parentNode)">×</button><br><input class="photo-caption" placeholder="Caption" oninput="state.photos['${id}'][${idx}].caption=this.value" />`;
+      grid.appendChild(item);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removePhoto(id, idx, el) {
+  state.photos[id].splice(idx, 1);
+  el.remove();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────
+function updateDashboard() {
+  const grid = document.getElementById('dashboard-grid');
+  grid.innerHTML = '';
+
+  Object.keys(SECTIONS).forEach(secKey => {
+    const sec = SECTIONS[secKey];
+    const tasks = sec.tasks;
+    let pass = 0, fail = 0, warn = 0, na = 0, none = 0;
+    tasks.forEach(t => {
+      const s = state.statuses[t.id];
+      if (s === 'pass') pass++;
+      else if (s === 'fail') fail++;
+      else if (s === 'warn') warn++;
+      else if (s === 'na') na++;
+      else none++;
+    });
+    const total = tasks.length;
+    const rated = pass + fail + warn;
+    const pct = rated > 0 ? Math.round((pass/rated)*100) : 0;
+
+    const card = document.createElement('div');
+    card.className = 'overview-card';
+    card.onclick = () => scrollTo('sec-' + secKey);
+    card.style.cursor = 'pointer';
+
+    const scoreColor = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : rated > 0 ? '#ef4444' : '#556070';
+
+    card.innerHTML = `
+      <div class="ov-header">
+        <div class="ov-title">${sec.label}</div>
+        <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:${scoreColor}">${rated > 0 ? pct + '%' : '—'}</div>
+      </div>
+      <div class="ov-bars">
+        <div class="ov-bar-row">
+          <div class="ov-bar-label" style="color:#22c55e">Pass</div>
+          <div class="ov-bar-track"><div class="ov-bar-fill" style="width:${total>0?pass/total*100:0}%;background:#22c55e"></div></div>
+          <div class="ov-bar-count">${pass}</div>
+        </div>
+        <div class="ov-bar-row">
+          <div class="ov-bar-label" style="color:#ef4444">Fail</div>
+          <div class="ov-bar-track"><div class="ov-bar-fill" style="width:${total>0?fail/total*100:0}%;background:#ef4444"></div></div>
+          <div class="ov-bar-count">${fail}</div>
+        </div>
+        <div class="ov-bar-row">
+          <div class="ov-bar-label" style="color:#f59e0b">Warn</div>
+          <div class="ov-bar-track"><div class="ov-bar-fill" style="width:${total>0?warn/total*100:0}%;background:#f59e0b"></div></div>
+          <div class="ov-bar-count">${warn}</div>
+        </div>
+        <div class="ov-bar-row">
+          <div class="ov-bar-label" style="color:#94a3b8">N/A</div>
+          <div class="ov-bar-track"><div class="ov-bar-fill" style="width:${total>0?na/total*100:0}%;background:#94a3b8"></div></div>
+          <div class="ov-bar-count">${na}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:10px;color:var(--text3);font-family:var(--mono)">${none} of ${total} not yet assessed</div>
+    `;
+    grid.appendChild(card);
+
+    // update nav badge
+    const badge = document.getElementById('badge-' + secKey);
+    if (badge) {
+      if (fail > 0) { badge.textContent = fail + ' Fail'; badge.className = 'nav-badge badge-fail'; }
+      else if (warn > 0) { badge.textContent = warn + ' Warn'; badge.className = 'nav-badge badge-warn'; }
+      else if (pass > 0) { badge.textContent = pass + ' Pass'; badge.className = 'nav-badge badge-pass'; }
+    }
+  });
+}
+
+// ── ACCUMULATORS ───────────────────────────────────────────────────────────
+let accCount = 0;
+function initAccumulators() {
+  const defaults = [
+    {name:'Accumulator 1 PP21',sch:'170',meas:'',tol:'2'},
+    {name:'Accumulator 2 PP22',sch:'170',meas:'',tol:'2'},
+    {name:'Accumulator 3 PP23',sch:'170',meas:'',tol:'2'},
+    {name:'Accumulator 4 PP24',sch:'170',meas:'',tol:'2'},
+  ];
+  defaults.forEach(d => addAccRow(d));
+}
+function addAccRow(def={}) {
+  accCount++;
+  const tbody = document.getElementById('acc-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input class="meas-table input" style="width:160px" value="${def.name||'Accumulator '+accCount}" placeholder="Designation" onchange="updateAccStatus(this)"/></td>
+    <td><input class="meas-table input" style="width:80px" type="number" value="${def.sch||''}" placeholder="170" onchange="updateAccStatus(this)"/></td>
+    <td><input class="meas-table input" style="width:80px" type="number" value="${def.meas||''}" placeholder="—" onchange="updateAccStatus(this)"/></td>
+    <td><input class="meas-table input" style="width:60px" type="number" value="${def.tol||'2'}" placeholder="2" onchange="updateAccStatus(this)"/></td>
+    <td id="acc-status-${accCount}"><span class="pill" style="background:var(--bg3);color:var(--text3)">—</span></td>
+    <td><button class="del-row-btn" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  // Fix input styles
+  tr.querySelectorAll('input').forEach(inp => {
+    inp.style.background = 'var(--bg3)';
+    inp.style.border = '1px solid var(--border)';
+    inp.style.borderRadius = '4px';
+    inp.style.padding = '5px 8px';
+    inp.style.color = 'var(--text)';
+    inp.style.fontSize = '12px';
+    inp.style.fontFamily = 'var(--mono)';
+    inp.style.width = '100%';
+  });
+  inp => inp.addEventListener('focus', e => { e.target.style.background='var(--bg2)'; e.target.style.borderColor='var(--accent)'; });
+}
+function updateAccStatus(inp) {
+  const tr = inp.closest('tr');
+  const inputs = tr.querySelectorAll('input');
+  const sch = parseFloat(inputs[1].value);
+  const meas = parseFloat(inputs[2].value);
+  const tol = parseFloat(inputs[3].value);
+  const cell = tr.cells[4];
+  if (!isNaN(sch) && !isNaN(meas) && !isNaN(tol)) {
+    const diff = Math.abs(meas - sch);
+    if (diff <= tol) {
+      cell.innerHTML = '<span class="pill pill-pass">PASS</span>';
+    } else {
+      cell.innerHTML = '<span class="pill pill-fail">FAIL</span>';
+    }
+  }
+}
+
+// ── PUMPS ──────────────────────────────────────────────────────────────────
+function initPumps() {
+  const defaults = [
+    {name:'System Pump',sch:'220',meas:''},
+    {name:'System Pump Unload',sch:'20',meas:''},
+  ];
+  defaults.forEach(d => addPumpRow(d));
+}
+function addPumpRow(def={}) {
+  const tbody = document.getElementById('pump-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input placeholder="Pump name" value="${def.name||''}"/></td>
+    <td><input type="number" placeholder="Bar" value="${def.sch||''}"/></td>
+    <td><input type="number" placeholder="Bar" value="${def.meas||''}" oninput="updatePumpStatus(this)"/></td>
+    <td id="ps">—</td>
+    <td><button class="del-row-btn" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  tr.querySelectorAll('input').forEach(inp => {
+    inp.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:12px;font-family:var(--mono);width:100%';
+  });
+}
+function updatePumpStatus(inp) {
+  const tr = inp.closest('tr');
+  const inputs = tr.querySelectorAll('input');
+  const sch = parseFloat(inputs[1].value);
+  const meas = parseFloat(inputs[2].value);
+  const cell = tr.querySelector('#ps') || tr.cells[3];
+  if (!isNaN(sch) && !isNaN(meas)) {
+    const pct = Math.abs(meas - sch) / sch * 100;
+    cell.innerHTML = pct <= 10 ? '<span class="pill pill-pass">PASS</span>' : '<span class="pill pill-fail">FAIL</span>';
+  }
+}
+
+// ── TONNAGE ────────────────────────────────────────────────────────────────
+function calcTonnage() {
+  const t0 = parseFloat(document.getElementById('ton-0').value);
+  const t10 = parseFloat(document.getElementById('ton-10').value);
+  if (!isNaN(t0)) {
+    const max = (t0 * 0.1).toFixed(1);
+    document.getElementById('ton-max').value = max;
+    if (!isNaN(t10)) {
+      const loss = (t0 - t10).toFixed(1);
+      const passed = parseFloat(loss) <= parseFloat(max);
+      document.getElementById('tonnage-result').style.display = 'flex';
+      document.getElementById('ton-loss').textContent = loss;
+      document.getElementById('ton-loss').style.color = passed ? 'var(--pass)' : 'var(--fail)';
+      document.getElementById('ton-result').innerHTML = passed
+        ? '<span class="pill pill-pass">PASS</span>'
+        : '<span class="pill pill-fail">FAIL</span>';
+    }
+  }
+}
+
+// ── MACHINE HEATS ──────────────────────────────────────────────────────────
+const defaultHeats = [
+  {name:'EX1',v:'400',w:'6800'},{name:'EX2',v:'400',w:'6800'},{name:'EX3.1',v:'400',w:'3400'},
+  {name:'EX3.2',v:'400',w:'3400'},{name:'EX4',v:'400',w:'6800'},{name:'EX5.1',v:'400',w:'3400'},
+  {name:'EX5.2',v:'400',w:'3400'},{name:'EX6.1',v:'400',w:'3400'},{name:'EX6.2',v:'400',w:'6800'},
+  {name:'EX7.1',v:'400',w:'3400'},{name:'EX7.2',v:'400',w:'6800'},{name:'EX8',v:'400',w:'3400'},
+  {name:'BH',v:'400',w:'3000'},{name:'BH Ext',v:'400',w:'1200'},{name:'SP1.1',v:'400',w:'3600'},
+  {name:'SP1.2',v:'400',w:'5450'},{name:'SP2.1',v:'400',w:'5200'},{name:'SP2.2',v:'400',w:'5200'},
+  {name:'SP3.1',v:'400',w:'5200'},{name:'SP3.2',v:'400',w:'10400'},{name:'Distributor',v:'400',w:'6000'},
+  {name:'Nozzle Adapter',v:'400',w:'4000'},
+];
+let heatIdx = 0;
+
+function initHeats() {
+  defaultHeats.forEach(h => addHeatRow(h));
+}
+
+function addHeatRow(def={}) {
+  heatIdx++;
+  const idx = heatIdx;
+  const tbody = document.getElementById('heats-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input class="heat-name-input" value="${def.name||''}" placeholder="Heater name" oninput="calcHeat(${idx})"/></td>
+    <td><select onchange="calcHeat(${idx})">
+      <option value="400" ${def.v=='400'?'selected':''}>400V</option>
+      <option value="460" ${def.v=='460'?'selected':''}>460V</option>
+      <option value="200" ${def.v=='200'?'selected':''}>200V</option>
+      <option value="230" ${def.v=='230'?'selected':''}>230V</option>
+    </select></td>
+    <td><input class="heat-narrow" type="number" value="${def.w||''}" placeholder="W" oninput="calcHeat(${idx})"/></td>
+    <td id="hcalc-${idx}" style="font-family:var(--mono);font-size:12px;color:var(--text2)">—</td>
+    <td><input class="heat-narrow" type="number" placeholder="Amps" id="hmeas-${idx}" oninput="calcHeat(${idx})"/></td>
+    <td id="hcond-${idx}"><span class="pill" style="background:var(--bg3);color:var(--text3)">—</span></td>
+    <td><button class="del-row-btn" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  // Style inputs/selects
+  tr.querySelectorAll('input,select').forEach(el => {
+    el.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:12px;font-family:var(--mono);text-align:center;';
+  });
+  tr.querySelector('.heat-name-input').style.textAlign = 'left';
+  if (def.w) calcHeat(idx);
+}
+
+function calcHeat(idx) {
+  const row = document.getElementById('hcalc-'+idx);
+  if (!row) return;
+  const tr = row.closest('tr');
+  const inputs = tr.querySelectorAll('input');
+  const sel = tr.querySelector('select');
+  const watts = parseFloat(inputs[1] ? inputs[1].value : 0);
+  const volts = parseFloat(sel ? sel.value : 400);
+  const meas = parseFloat(document.getElementById('hmeas-'+idx) ? document.getElementById('hmeas-'+idx).value : '');
+
+  if (!isNaN(watts) && !isNaN(volts) && volts > 0) {
+    const calc = (watts / volts).toFixed(2);
+    row.textContent = calc;
+    if (!isNaN(meas)) {
+      const diff = Math.abs(parseFloat(calc) - meas) / parseFloat(calc) * 100;
+      const condCell = document.getElementById('hcond-'+idx);
+      condCell.innerHTML = diff <= 10
+        ? '<span class="pill pill-pass">PASS</span>'
+        : '<span class="pill pill-fail">FAIL</span>';
+    }
+  }
+}
+
+// ── NON PROCESS TIMES ──────────────────────────────────────────────────────
+const defaultNPT = [
+  {name:'Mold closing time',ref:'0.53'},{name:'Clamp lock-In',ref:'0.23'},
+  {name:'Clamp Up',ref:'0.25'},{name:'Unclamp Time',ref:'0.28'},
+  {name:'Clamp Lock-Out',ref:'0.16'},{name:'Mold Opening',ref:'0.48'},
+];
+
+function initNPT() {
+  defaultNPT.forEach(n => addNPTRow(n));
+}
+
+function addNPTRow(def={}) {
+  const tbody = document.getElementById('npt-tbody');
+  const tr = document.createElement('tr');
+  const id = 'npt-' + Date.now() + Math.random();
+  tr.innerHTML = `
+    <td style="text-align:left"><input style="width:180px;text-align:left;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:12px;font-family:var(--sans);" value="${def.name||''}" placeholder="Action name"/></td>
+    <td><input id="ref-${id}" type="number" step="0.01" value="${def.ref||''}" placeholder="0.00" oninput="calcNPT(this)" style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:12px;font-family:var(--mono);text-align:center;width:90px"/></td>
+    <td><input id="meas-${id}" type="number" step="0.01" value="" placeholder="0.00" oninput="calcNPT(this)" style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);font-size:12px;font-family:var(--mono);text-align:center;width:90px"/></td>
+    <td id="diff-${id}" style="font-family:var(--mono);font-size:13px;font-weight:700">—</td>
+    <td><button class="del-row-btn" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+
+  // Store id reference
+  tr.dataset.nptId = id;
+}
+
+function calcNPT(inp) {
+  const tr = inp.closest('tr');
+  const id = tr.dataset.nptId;
+  const ref = parseFloat(document.getElementById('ref-'+id)?.value);
+  const meas = parseFloat(document.getElementById('meas-'+id)?.value);
+  const cell = document.getElementById('diff-'+id);
+  if (!isNaN(ref) && !isNaN(meas) && cell) {
+    const diff = (meas - ref).toFixed(2);
+    const num = parseFloat(diff);
+    cell.textContent = (num >= 0 ? '+' : '') + diff;
+    cell.style.color = num === 0 ? 'var(--text2)' : num > 0 ? 'var(--fail)' : 'var(--pass)';
+  }
+}
+
+// ── THERMAL ────────────────────────────────────────────────────────────────
+const defaultThermalSections = ['Main Electrical Cabinet','Robot Electrical Cabinet','Power Pack and E-Motor'];
+let thermalSectionIdx = 0;
+
+function initThermal() {
+  defaultThermalSections.forEach(name => addThermalSection(name));
+}
+
+function addThermalSection(name='') {
+  thermalSectionIdx++;
+  const idx = thermalSectionIdx;
+  const container = document.getElementById('thermal-sections');
+  const div = document.createElement('div');
+  div.style.marginBottom = '28px';
+  div.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <input value="${name}" placeholder="Section name" style="font-size:14px;font-weight:700;color:var(--text2);background:transparent;border:none;border-bottom:1px solid var(--border);padding-bottom:4px;color:var(--text);font-family:var(--sans);min-width:220px"/>
+      <button class="del-row-btn" style="font-size:12px" onclick="this.closest('div').parentNode.remove()">✕ Remove Section</button>
+    </div>
+    <div class="thermal-grid" id="thermal-grid-${idx}">
+      <div class="thermal-add" onclick="triggerThermalUpload(${idx})">
+        <input type="file" id="thermal-input-${idx}" accept="image/*" multiple style="display:none" onchange="addThermalImages(${idx},event)">
+        + Add Image
+      </div>
+    </div>
+    <div class="form-group thermal-comment">
+      <label class="form-label">Section Comments</label>
+      <textarea class="form-input" placeholder="e.g. Images taken while machine is in operation. Nothing abnormal was found."></textarea>
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+function triggerThermalUpload(idx) {
+  document.getElementById('thermal-input-'+idx).click();
+}
+
+function addThermalImages(idx, event) {
+  const grid = document.getElementById('thermal-grid-'+idx);
+  Array.from(event.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const item = document.createElement('div');
+      item.className = 'thermal-item';
+      item.innerHTML = `
+        <div class="thermal-img-wrap">
+          <img src="${e.target.result}" />
+          <button style="position:absolute;top:6px;right:6px;background:var(--fail);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px" onclick="this.closest('.thermal-item').remove()">×</button>
+        </div>
+        <div class="thermal-caption"><input placeholder="Image caption..." /></div>
+      `;
+      grid.insertBefore(item, grid.lastElementChild);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── ALARMS ─────────────────────────────────────────────────────────────────
+const defaultAlarms = [
+  'IMM — Minimum Cycle Time Reached',
+  'Injection — Excess Transfer Time',
+  'M/C Heats - Shooting Pot - Temperature Deviation Low',
+  'Stroke Cylinder — Servo Valve Spool Position Fault',
+  'Clamp Lock — Servo Axis Drive Fault',
+  'Pressure Oil Filter Dirty For 2 Hours',
+];
+const defaultTopAlarms = [
+  {desc:'Temperature Deviation Low SP2', freq:'21×'},
+  {desc:'CoolPik Photo Eyes Not Blocked', freq:'6×'},
+  {desc:'Part Interference', freq:'4×'},
+  {desc:'Servo Valve Spool Position Fault', freq:'3×'},
+  {desc:'Mold Sensor Not Clear', freq:'3×'},
+];
+
+function initAlarms() {
+  defaultAlarms.forEach(a => addAlarm(a));
+  defaultTopAlarms.forEach(a => addTopAlarm(a));
+}
+
+function addAlarm(def='') {
+  const list = document.getElementById('alarm-list');
+  const div = document.createElement('div');
+  div.className = 'alarm-row';
+  div.innerHTML = `
+    <input value="${def}" placeholder="Alarm source" style="background:transparent;border:none;color:var(--text);font-size:12px;font-family:var(--sans)"/>
+    <input placeholder="Description / status" style="background:transparent;border:none;color:var(--text2);font-size:12px;font-family:var(--sans)"/>
+    <button class="del-row-btn" onclick="this.closest('.alarm-row').remove()">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+function addTopAlarm(def={}) {
+  const list = document.getElementById('top-alarm-list');
+  const div = document.createElement('div');
+  div.className = 'alarm-row';
+  div.innerHTML = `
+    <input value="${def.desc||''}" placeholder="Alarm description" style="background:transparent;border:none;color:var(--text);font-size:12px;font-family:var(--sans)"/>
+    <input placeholder="Notes" style="background:transparent;border:none;color:var(--text2);font-size:12px;font-family:var(--sans)"/>
+    <span class="freq-badge"><input value="${def.freq||''}" placeholder="Freq" style="background:transparent;border:none;color:inherit;font-size:11px;font-family:var(--mono);font-weight:700;width:40px;text-align:center"/></span>
+    <button class="del-row-btn" onclick="this.closest('.alarm-row').remove()">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+// ── RECOMMENDATIONS ────────────────────────────────────────────────────────
+const defaultMachineRecs = [
+  'Regularly check machine level, parallelism, and nozzle concentricity. Correct full machine level before next mold change. For relocation, obtain new set of leveling pads.',
+  'Multiple hoses and fittings found leaking, blistered, or damaged. Proactive replacement is recommended. Include regular hose inspections in standard maintenance routines.',
+  'Regularly check Clamp Column MVP bolts. Refer to HS252 for torque requirements.',
+  'Use external portable filtration unit with 2.5-micron filtering capacity (Beta 1000) to maintain oil cleanliness.',
+  'Oil contamination analysis is highly recommended.',
+  'Machine backup is highly recommended.',
+  'Recommend pump calibration even when pressures are correct.',
+  'Machine heats wiring clean-up recommended. Wiring can be cut to length for better fit.',
+];
+const defaultRobotRecs = [
+  'Periodically measure Z-axis belt tension and apply proper lubrication per schedule.',
+];
+
+function initRecs() {
+  defaultMachineRecs.forEach(r => addRec('machine', r));
+  defaultRobotRecs.forEach(r => addRec('robot', r));
+}
+
+function addRec(type, text='') {
+  const list = document.getElementById('rec-' + type + '-list');
+  const num = list.children.length + 1;
+  const li = document.createElement('li');
+  li.className = 'rec-item';
+  li.innerHTML = `
+    <div class="rec-num">${num}</div>
+    <textarea class="rec-textarea" placeholder="Add recommendation...">${text}</textarea>
+    <button class="del-row-btn" onclick="this.closest('li').remove()" style="margin-top:2px">✕</button>
+  `;
+  list.appendChild(li);
+}
+
+// ── MACHINE PHOTO ──────────────────────────────────────────────────────────
+function setMachinePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('machine-photo-placeholder').style.display = 'none';
+    const img = document.getElementById('machine-photo-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── PDF EXPORT ─────────────────────────────────────────────────────────────
+function exportPDF() {
+  const btn = document.querySelector('.btn-primary');
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  setTimeout(() => {
+    window.print();
+    btn.textContent = '⬇ Export PDF';
+    btn.disabled = false;
+  }, 300);
+}
+
+function clearAll() {
+  if (!confirm('Clear all form data? This cannot be undone.')) return;
+  document.querySelectorAll('.form-input, .comment-area, textarea, .rec-textarea').forEach(el => { el.value = ''; });
+  Object.keys(state.statuses).forEach(k => delete state.statuses[k]);
+  Object.keys(state.comments).forEach(k => delete state.comments[k]);
+  document.querySelectorAll('.task-row').forEach(r => { r.className = 'task-row'; });
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+  updateDashboard();
+}
+
+// ── PRINT STYLES ───────────────────────────────────────────────────────────
+const printStyle = document.createElement('style');
+printStyle.textContent = `
+@media print {
+  .sidebar,.topbar { display:none!important; }
+  .main-content { margin-left:0!important; }
+  body { background:#fff!important; color:#000!important; }
+  :root { --bg:#fff; --bg2:#f8f8f8; --bg3:#f0f0f0; --border:#ddd; --text:#111; --text2:#444; --text3:#777; }
+  .section { break-inside:avoid; }
+  input,textarea,select { border-color:#ccc!important; }
+}`;
+document.head.appendChild(printStyle);
+</script>
+</body>
+</html>
