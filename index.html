@@ -105,19 +105,46 @@ textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.6; }
 .ov-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
 .ov-bar-count { font-size: 11px; font-family: var(--mono); color: var(--text3); width: 22px; text-align: right; font-weight: 700; }
 
-/* ═══ TASK TABLE ═════════════════════════════════════════════ */
-.task-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-.task-table th { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); font-family: var(--mono); padding: 12px 16px; text-align: left; background: var(--bg3); border-bottom: 2px solid var(--border); }
-.task-table th:first-child { border-radius: 8px 0 0 0; }
-.task-table th:last-child { border-radius: 0 8px 0 0; }
-.task-row { transition: background 0.1s; }
-.task-row:hover { background: #f8faff; }
-.task-row + .task-row { border-top: 1px solid var(--border); }
-.task-cell { padding: 14px 16px; vertical-align: top; background: var(--bg2); }
-.task-num { font-family: var(--mono); font-size: 12px; color: var(--text3); font-weight: 700; background: var(--bg3); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.task-name { font-size: 14px; font-weight: 500; line-height: 1.5; color: var(--text); }
+/* ═══ TASK CARDS ═════════════════════════════════════════════ */
+.task-card-list { display: flex; flex-direction: column; gap: 12px; }
+
+.task-card { background: var(--bg2); border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: box-shadow 0.2s; }
+.task-card:hover { box-shadow: var(--shadow-md); }
+.task-card.status-pass { border-left: 4px solid var(--pass); }
+.task-card.status-fail { border-left: 4px solid var(--fail); }
+.task-card.status-warn { border-left: 4px solid var(--warn); }
+
+/* Top row: task name + status buttons */
+.task-card-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--bg2); flex-wrap: wrap; }
+.task-card-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.task-card-right { display: flex; align-items: center; flex-shrink: 0; }
+.task-num { font-family: var(--mono); font-size: 11px; color: var(--text3); font-weight: 700; background: var(--bg3); min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); }
+.task-name { font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--text); }
+
+/* Bottom row: photos + comment side by side */
+.task-card-bottom { display: grid; grid-template-columns: 300px 1fr; gap: 0; background: var(--bg3); }
+.task-photo-col { padding: 14px 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.task-comment-col { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Photo grid inside card - horizontal scroll of square photos */
+.photo-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.photo-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; padding: 6px; box-shadow: var(--shadow); width: 120px; }
+.photo-thumb { width: 108px; height: 108px; object-fit: cover; border-radius: 6px; display: block; }
+.photo-remove { position: absolute; top: 3px; right: 3px; background: var(--fail); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.photo-caption { font-size: 11px; background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text2); width: 108px; padding: 3px 0; text-align: center; font-family: var(--sans); }
+.photo-caption:focus { outline: none; border-color: var(--accent); }
+
+.photo-upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 12px 10px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg2); }
+.photo-upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
+.photo-upload-area input { display: none; }
+.photo-upload-text { font-size: 12px; color: var(--text3); font-weight: 600; }
+
+.comment-area { flex: 1; width: 100%; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 13px; color: var(--text); font-size: 14px; font-family: var(--sans); resize: vertical; min-height: 100px; line-height: 1.6; transition: all 0.15s; }
+.comment-area:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,78,216,0.08); }
+
+/* ═══ STATUS BUTTONS ═════════════════════════════════════════ */
 .status-toggle { display: flex; gap: 5px; flex-wrap: wrap; }
-.status-btn { padding: 6px 12px; border-radius: 6px; border: 1.5px solid transparent; cursor: pointer; font-size: 12px; font-weight: 700; font-family: var(--mono); transition: all 0.15s; letter-spacing: 0.3px; }
+.status-btn { padding: 7px 14px; border-radius: 7px; border: 1.5px solid transparent; cursor: pointer; font-size: 12px; font-weight: 700; font-family: var(--mono); transition: all 0.15s; letter-spacing: 0.3px; white-space: nowrap; }
 .status-btn.pass { border-color: #bbf7d0; color: #6b7280; background: #f0fdf4; }
 .status-btn.pass:hover, .status-btn.pass.active { background: var(--pass-bg); border-color: var(--pass); color: var(--pass); }
 .status-btn.fail { border-color: #fecaca; color: #6b7280; background: #fef2f2; }
@@ -126,29 +153,6 @@ textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.6; }
 .status-btn.warn:hover, .status-btn.warn.active { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
 .status-btn.na { border-color: #e2e8f0; color: #6b7280; background: #f8fafc; }
 .status-btn.na:hover, .status-btn.na.active { background: #f1f5f9; border-color: #64748b; color: #64748b; }
-.comment-area { width: 100%; background: var(--bg3); border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 13px; font-family: var(--sans); resize: vertical; min-height: 58px; line-height: 1.6; transition: all 0.15s; }
-.comment-area:focus { outline: none; border-color: var(--accent); background: var(--bg2); box-shadow: 0 0 0 3px rgba(29,78,216,0.08); }
-.task-row.status-pass .task-cell { border-left: 3px solid var(--pass); }
-.task-row.status-fail .task-cell { border-left: 3px solid var(--fail); }
-.task-row.status-warn .task-cell { border-left: 3px solid var(--warn); }
-.task-row.status-pass .task-cell:not(:first-child) { border-left: none; }
-.task-row.status-fail .task-cell:not(:first-child) { border-left: none; }
-.task-row.status-warn .task-cell:not(:first-child) { border-left: none; }
-.task-row.status-pass { border-left: 4px solid var(--pass); }
-.task-row.status-fail { border-left: 4px solid var(--fail); }
-.task-row.status-warn { border-left: 4px solid var(--warn); }
-
-/* ═══ PHOTO UPLOAD ════════════════════════════════════════════ */
-.photo-upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg3); }
-.photo-upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
-.photo-upload-area input { display: none; }
-.photo-upload-text { font-size: 12px; color: var(--text3); font-weight: 600; }
-.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-.photo-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 6px; box-shadow: var(--shadow); }
-.photo-thumb { width: 100%; height: 90px; object-fit: cover; border-radius: 6px; display: block; }
-.photo-remove { position: absolute; top: 4px; right: 4px; background: var(--fail); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-.photo-caption { font-size: 11px; background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text2); width: 100%; padding: 3px 0; text-align: center; font-family: var(--sans); }
-.photo-caption:focus { outline: none; border-color: var(--accent); }
 
 /* ═══ MEASUREMENTS ════════════════════════════════════════════ */
 .meas-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 16px; }
@@ -274,42 +278,30 @@ textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.6; }
   .main-content { margin-left: 0; }
   .topbar { padding: 13px 16px 13px 60px; }
   .topbar-title { font-size: 11px; }
-  .section { padding: 24px 16px; }
+  .section { padding: 20px 14px; }
   .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
   .overview-grid { grid-template-columns: 1fr 1fr; }
-  .status-toggle { gap: 4px; }
-  .status-btn { padding: 5px 9px; font-size: 11px; }
-  .task-table { font-size: 13px; }
-  .task-cell { padding: 10px 10px; }
-  /* stack table cells vertically on mobile */
-  .task-table thead { display: none; }
-  .task-table, .task-table tbody, .task-row, .task-cell { display: block; width: 100%; }
-  .task-row { border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
-  .task-row.status-pass { border-left: 4px solid var(--pass); }
-  .task-row.status-fail { border-left: 4px solid var(--fail); }
-  .task-row.status-warn { border-left: 4px solid var(--warn); }
-  .task-cell { border-bottom: 1px solid var(--border); }
-  .task-cell:last-child { border-bottom: none; }
+  /* Card layout on mobile: stack photo col under comment */
+  .task-card-top { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .task-card-bottom { grid-template-columns: 1fr; }
+  .task-photo-col { border-right: none; border-bottom: 1px solid var(--border); }
+  .status-btn { padding: 6px 10px; font-size: 11px; }
   .alarm-row { grid-template-columns: 1fr auto; }
-  .alarm-row input:first-child { grid-column: 1 / -1; font-weight: 600; }
   .heats-table { font-size: 12px; }
-  .heats-table th, .heats-table td { padding: 8px 6px; }
-  .heat-name-input { width: 80px; }
-  .heat-narrow { width: 60px; }
-  .npt-table th, .npt-table td { padding: 8px 10px; }
+  .heats-table th, .heats-table td { padding: 7px 5px; }
+  .heat-name-input { width: 75px; }
+  .heat-narrow { width: 55px; }
   .tonnage-result { flex-direction: column; }
   .thermal-grid { grid-template-columns: 1fr; }
-  .photo-grid { grid-template-columns: 1fr 1fr; }
   .btn { padding: 8px 14px; font-size: 12px; }
-  .topbar-actions .btn-secondary span:not(:first-child) { display: none; }
   .section-title { font-size: 17px; }
-  .sub-heading { margin-top: 20px; }
+  .photo-item { width: 100px; }
+  .photo-thumb { width: 88px; height: 88px; }
+  .photo-caption { width: 88px; }
 }
-
 @media (max-width: 480px) {
   .overview-grid { grid-template-columns: 1fr; }
-  .form-grid-3 { grid-template-columns: 1fr; }
-  .photo-grid { grid-template-columns: 1fr 1fr; }
+  .task-card-bottom { grid-template-columns: 1fr; }
 }
 
 /* LAYOUT */
@@ -1173,62 +1165,63 @@ function buildTable(secKey) {
   const sec = SECTIONS[secKey];
   const container = document.getElementById('table-' + secKey);
   const wrapper = document.createElement('div');
-  wrapper.style.overflowX = 'auto';
-
-  let html = `<table class="task-table"><thead><tr>
-    <th style="width:40px">#</th>
-    <th>Task / Item</th>
-    <th style="width:160px">Status</th>
-    <th>Comment</th>
-    <th style="width:110px">Photos</th>
-  </tr></thead><tbody>`;
+  wrapper.className = 'task-card-list';
 
   sec.tasks.forEach((task, i) => {
-    html += `<tr class="task-row" id="row-${task.id}" data-sec="${secKey}" data-id="${task.id}">
-      <td class="task-cell"><span class="task-num">${i+1}</span></td>
-      <td class="task-cell"><span class="task-name">${task.name}</span></td>
-      <td class="task-cell">
-        <div class="status-toggle">
-          <button class="status-btn pass" onclick="setStatus('${task.id}','pass',this)" data-val="pass">✓ Pass</button>
-          <button class="status-btn fail" onclick="setStatus('${task.id}','fail',this)" data-val="fail">✗ Fail</button>
-          <button class="status-btn warn" onclick="setStatus('${task.id}','warn',this)" data-val="warn">! Warn</button>
-          <button class="status-btn na" onclick="setStatus('${task.id}','na',this)" data-val="na">N/A</button>
+    const card = document.createElement('div');
+    card.className = 'task-card';
+    card.id = 'row-' + task.id;
+    card.dataset.sec = secKey;
+    card.dataset.id = task.id;
+
+    card.innerHTML = `
+      <!-- ROW 1: Task name + Status -->
+      <div class="task-card-top">
+        <div class="task-card-left">
+          <span class="task-num">${i+1}</span>
+          <span class="task-name">${task.name}</span>
         </div>
-      </td>
-      <td class="task-cell">
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;gap:6px;align-items:center">
-            <div class="preset-dropdown">
-              <button class="preset-btn" onclick="togglePreset('${task.id}')">▾ Presets</button>
-              <div class="preset-menu" id="preset-${task.id}">
-                ${task.presets.map(p => `<div class="preset-option" onclick="applyPreset('${task.id}',\`${p.replace(/`/g,"'")}\`)">${p}</div>`).join('')}
-              </div>
+        <div class="task-card-right">
+          <div class="status-toggle">
+            <button class="status-btn pass" onclick="setStatus('${task.id}','pass',this)">✓ Pass</button>
+            <button class="status-btn fail" onclick="setStatus('${task.id}','fail',this)">✗ Fail</button>
+            <button class="status-btn warn" onclick="setStatus('${task.id}','warn',this)">⚠ Warn</button>
+            <button class="status-btn na"   onclick="setStatus('${task.id}','na',this)">N/A</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Photo upload | Comment -->
+      <div class="task-card-bottom">
+        <div class="task-photo-col">
+          <div class="photo-upload-area" onclick="document.getElementById('photo-input-${task.id}').click()">
+            <input type="file" id="photo-input-${task.id}" accept="image/*" multiple onchange="addPhotos('${task.id}',event)">
+            <div class="photo-upload-text">📷 Add Photos</div>
+          </div>
+          <div class="photo-grid" id="photo-grid-${task.id}"></div>
+        </div>
+        <div class="task-comment-col">
+          <div class="preset-dropdown" style="margin-bottom:6px">
+            <button class="preset-btn" onclick="togglePreset('${task.id}')">▾ Quick Comments</button>
+            <div class="preset-menu" id="preset-${task.id}">
+              ${task.presets.map(p => `<div class="preset-option" onclick="applyPreset('${task.id}',\`${p.replace(/`/g,"'")}\`)">${p}</div>`).join('')}
             </div>
           </div>
-          <textarea class="comment-area" id="comment-${task.id}" placeholder="Add comment..." oninput="saveComment('${task.id}',this.value)"></textarea>
+          <textarea class="comment-area" id="comment-${task.id}" placeholder="Add comment or observation..." oninput="saveComment('${task.id}',this.value)"></textarea>
         </div>
-      </td>
-      <td class="task-cell">
-        <div class="photo-upload-area" onclick="document.getElementById('photo-input-${task.id}').click()">
-          <input type="file" id="photo-input-${task.id}" accept="image/*" multiple onchange="addPhotos('${task.id}',event)">
-          <div class="photo-upload-text">📷 Upload</div>
-        </div>
-        <div class="photo-grid" id="photo-grid-${task.id}"></div>
-      </td>
-    </tr>`;
+      </div>
+    `;
+    wrapper.appendChild(card);
   });
 
-  html += '</tbody></table>';
-  wrapper.innerHTML = html;
   container.appendChild(wrapper);
 }
 
 function setStatus(id, val, btn) {
   state.statuses[id] = val;
-  const row = document.getElementById('row-' + id);
-  row.className = 'task-row status-' + val;
-  const buttons = row.querySelectorAll('.status-btn');
-  buttons.forEach(b => b.classList.remove('active'));
+  const card = document.getElementById('row-' + id);
+  card.className = 'task-card status-' + val;
+  card.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
 
@@ -1744,37 +1737,64 @@ printStyle.textContent = `
   @page { size: A4 landscape; margin: 12mm 15mm; }
   .sidebar, .topbar, .hamburger, .sidebar-overlay { display:none!important; }
   .main-content { margin-left:0!important; }
-  body { background:#fff!important; color:#111!important; font-size:10.5pt!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  :root { --bg:#fff; --bg2:#fff; --bg3:#f5f5f5; --border:#ddd; --text:#111; --text2:#444; --text3:#888; --pass:#15803d; --pass-bg:#f0fdf4; --pass-border:#bbf7d0; --fail:#b91c1c; --fail-bg:#fef2f2; --fail-border:#fecaca; --warn:#b45309; --warn-bg:#fffbeb; --warn-border:#fde68a; --accent:#1d4ed8; --accent-light:#eff6ff; --accent-border:#bfdbfe; --shadow:none; --shadow-md:none; }
-  .section { break-before:auto; break-inside:avoid; padding:14px 0!important; border-bottom:1px solid #ddd!important; }
-  .section-header { padding-bottom:10px!important; margin-bottom:14px!important; }
-  .section-title { font-size:13pt!important; }
-  .sub-heading { margin-top:16px!important; font-size:10pt!important; }
-  input, textarea, select { border-color:#ddd!important; background:#fff!important; }
-  .photo-grid { display:grid!important; grid-template-columns:1fr 1fr 1fr!important; gap:14px!important; margin-top:12px!important; width:100%!important; }
-  .photo-item { break-inside:avoid; page-break-inside:avoid; display:flex!important; flex-direction:column!important; align-items:center!important; gap:6px!important; background:#fafafa!important; border:1px solid #ddd!important; border-radius:8px!important; padding:8px!important; }
-  .photo-thumb { width:100%!important; height:200px!important; object-fit:cover!important; border-radius:6px!important; display:block!important; margin:0 auto!important; }
-  .photo-caption { font-size:8.5pt!important; color:#555!important; width:100%!important; text-align:center!important; font-style:italic!important; margin-top:4px!important; display:block!important; }
-  .photo-remove, .photo-upload-area { display:none!important; }
-  .thermal-grid { display:grid!important; grid-template-columns:1fr 1fr!important; gap:16px!important; }
-  .thermal-section-block { break-inside:avoid; page-break-inside:avoid; border:1px solid #ddd!important; box-shadow:none!important; margin-bottom:16px!important; }
-  .thermal-item { break-inside:avoid; page-break-inside:avoid; }
-  .thermal-img-wrap { height:240px!important; }
-  .thermal-img-wrap img { width:100%!important; height:100%!important; object-fit:cover!important; display:block!important; margin:0 auto!important; }
-  .thermal-add, .add-row-btn, .del-row-btn, .btn, .preset-dropdown { display:none!important; }
-  .thermal-caption { background:#f5f5f5!important; }
-  #machine-photo-img { max-height:360px!important; width:100%!important; object-fit:contain!important; display:block!important; margin:0 auto!important; border-radius:8px!important; }
+  body { background:#fff!important; color:#111!important; font-size:10pt!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  :root { --bg:#fff; --bg2:#fff; --bg3:#f5f5f5; --border:#ddd; --text:#111; --text2:#444; --text3:#888;
+    --pass:#15803d; --pass-bg:#f0fdf4; --pass-border:#bbf7d0;
+    --fail:#b91c1c; --fail-bg:#fef2f2; --fail-border:#fecaca;
+    --warn:#b45309; --warn-bg:#fffbeb; --warn-border:#fde68a;
+    --accent:#1d4ed8; --accent-light:#eff6ff; --accent-border:#bfdbfe;
+    --shadow:none; --shadow-md:none; }
+
+  /* Task cards */
+  .task-card-list { gap: 10px!important; }
+  .task-card { box-shadow:none!important; break-inside:avoid; page-break-inside:avoid; border:1px solid #ddd!important; border-radius:8px!important; }
+  .task-card.status-pass { border-left:4px solid #15803d!important; }
+  .task-card.status-fail { border-left:4px solid #b91c1c!important; }
+  .task-card.status-warn { border-left:4px solid #b45309!important; }
+  .task-card-top { padding:10px 14px!important; }
+  .task-name { font-size:10pt!important; }
+  .task-card-bottom { grid-template-columns: 1fr 1fr!important; }
+  .task-photo-col { padding:10px 14px!important; border-right:1px solid #ddd!important; }
+  .task-comment-col { padding:10px 14px!important; }
+
+  /* Photos: LARGE and centered in print */
+  .photo-upload-area { display:none!important; }
+  .photo-remove { display:none!important; }
+  .photo-grid { display:flex!important; flex-wrap:wrap!important; gap:10px!important; justify-content:flex-start!important; }
+  .photo-item { width:160px!important; break-inside:avoid!important; box-shadow:none!important; border:1px solid #ddd!important; }
+  .photo-thumb { width:148px!important; height:148px!important; object-fit:cover!important; display:block!important; }
+  .photo-caption { width:148px!important; font-size:8pt!important; font-style:italic!important; color:#555!important; text-align:center!important; }
+
+  /* Comments */
+  .comment-area { min-height:60px!important; font-size:9.5pt!important; border:none!important; background:transparent!important; padding:0!important; }
+  .preset-dropdown { display:none!important; }
+
+  /* Thermal */
+  .thermal-grid { display:grid!important; grid-template-columns:1fr 1fr!important; gap:14px!important; }
+  .thermal-section-block { break-inside:avoid; box-shadow:none!important; border:1px solid #ddd!important; }
+  .thermal-img-wrap { height:220px!important; }
+  .thermal-img-wrap img { width:100%!important; height:100%!important; object-fit:cover!important; }
+  .thermal-add, .add-row-btn, .del-row-btn, .btn { display:none!important; }
+
+  /* Machine photo */
+  #machine-photo-img { max-height:340px!important; width:100%!important; object-fit:contain!important; display:block!important; margin:0 auto!important; }
   .machine-photo-area { border:none!important; padding:0!important; background:none!important; }
-  .task-table { font-size:9.5pt!important; border-collapse:collapse!important; }
-  .task-cell { padding:6px 8px!important; }
-  .task-name { font-size:9.5pt!important; }
-  .status-btn { font-size:8pt!important; padding:3px 6px!important; }
-  .overview-grid { grid-template-columns:repeat(4,1fr)!important; gap:10px!important; }
-  .overview-card { box-shadow:none!important; border:1px solid #ddd!important; padding:12px!important; }
+
+  /* Dashboard */
+  .overview-grid { grid-template-columns:repeat(4,1fr)!important; gap:8px!important; }
+  .overview-card { box-shadow:none!important; border:1px solid #ddd!important; padding:10px!important; }
+
+  /* Tables */
   .meas-table, .heats-table, .npt-table { box-shadow:none!important; }
-  .alarm-row, .rec-item { box-shadow:none!important; }
+  .meas-table th, .heats-table th, .npt-table th { font-size:8.5pt!important; padding:6px 10px!important; }
+  .meas-table td, .heats-table td, .npt-table td { font-size:9pt!important; padding:5px 10px!important; }
+
+  .section { break-before:auto; break-inside:avoid; padding:12px 0!important; }
+  .section-title { font-size:12pt!important; }
+  .sub-heading { font-size:9.5pt!important; margin-top:12px!important; }
 }`;
 document.head.appendChild(printStyle);
+
 
 </script>
 </body>
